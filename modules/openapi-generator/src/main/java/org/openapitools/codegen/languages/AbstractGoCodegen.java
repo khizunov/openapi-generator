@@ -30,6 +30,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.openapitools.codegen.utils.CamelizeOption.LOWERCASE_FIRST_LETTER;
 import static org.openapitools.codegen.utils.StringUtils.camelize;
@@ -44,6 +46,7 @@ public abstract class AbstractGoCodegen extends DefaultCodegen implements Codege
     protected boolean withAWSV4Signature = false;
     protected boolean withXml = false;
     protected boolean enumClassPrefix = false;
+    protected boolean enumVarNameToUpperCase = true;
     protected boolean structPrefix = false;
     protected boolean generateInterfaces = false;
     protected boolean withGoMod = false;
@@ -51,6 +54,8 @@ public abstract class AbstractGoCodegen extends DefaultCodegen implements Codege
 
     protected String packageName = "openapi";
     protected Set<String> numberTypes;
+
+    private final Map<String, String> commonAbbreviations = new HashMap<>();
 
     public AbstractGoCodegen() {
         super();
@@ -206,6 +211,12 @@ public abstract class AbstractGoCodegen extends DefaultCodegen implements Codege
         // pet_id => PetId
         name = camelize(name);
 
+        // Fix name according to golang naming conventions
+        // PhoneId => PhoneID
+        for (String k : commonAbbreviations.keySet()) {
+            name = name.replaceAll(k, commonAbbreviations.get(k));
+        }
+
         // for reserved word append _
         if (isReservedWord(name)) {
             LOGGER.warn("{} (reserved word) cannot be used as variable name. Renamed to {}", name, escapeReservedWord(name));
@@ -256,7 +267,15 @@ public abstract class AbstractGoCodegen extends DefaultCodegen implements Codege
     public String toModelName(String name) {
         // camelize the model name
         // phone_number => PhoneNumber
-        return camelize(toModel(name));
+        String nameInCamelCase = camelize(toModel(name));
+
+        // Fix name according to golang naming conventions
+        // PhoneId => PhoneID
+        for (String k : commonAbbreviations.keySet()) {
+            nameInCamelCase = nameInCamelCase.replaceAll(k, commonAbbreviations.get(k));
+        }
+
+        return nameInCamelCase;
     }
 
     protected boolean isReservedFilename(String name) {
@@ -565,6 +584,10 @@ public abstract class AbstractGoCodegen extends DefaultCodegen implements Codege
 
         }
 
+        return addImports(objs, imports);
+    }
+
+    protected OperationsMap addImports(OperationsMap objs, List<Map<String, String>> imports) {
         // recursively add import for mapping one type to multiple imports
         List<Map<String, String>> recursiveImports = objs.getImports();
         if (recursiveImports == null)
@@ -864,12 +887,22 @@ public abstract class AbstractGoCodegen extends DefaultCodegen implements Codege
         }
 
         // for symbol, e.g. $, #
-        if (getSymbolName(name) != null) {
-            return getSymbolName(name).toUpperCase(Locale.ROOT);
+        String symbolName = getSymbolName(name);
+        if (symbolName != null) {
+            if (enumVarNameToUpperCase) {
+                return symbolName.toUpperCase(Locale.ROOT);
+            }
+            return camelize(symbolName);
         }
 
         // string
-        String enumName = sanitizeName(underscore(name).toUpperCase(Locale.ROOT));
+        String enumName = underscore(name);
+        if (enumVarNameToUpperCase) {
+            enumName = sanitizeName(enumName.toUpperCase(Locale.ROOT));
+        } else {
+            enumName = camelize(sanitizeName(enumName));
+        }
+
         enumName = enumName.replaceFirst("^_", "");
         enumName = enumName.replaceFirst("_$", "");
 
@@ -914,6 +947,10 @@ public abstract class AbstractGoCodegen extends DefaultCodegen implements Codege
 
     public void setEnumClassPrefix(boolean enumClassPrefix) {
         this.enumClassPrefix = enumClassPrefix;
+    }
+
+    public void setEnumVarNameToUpperCase(boolean enumVarNameToUpperCase) {
+        this.enumVarNameToUpperCase = enumVarNameToUpperCase;
     }
 
     public void setStructPrefix(boolean structPrefix) {
@@ -984,6 +1021,10 @@ public abstract class AbstractGoCodegen extends DefaultCodegen implements Codege
                 Thread.currentThread().interrupt();
             }
         }
+    }
+
+    protected void appendCommonAbbreviations(Map<String, String> abbreviations) {
+        commonAbbreviations.putAll(abbreviations);
     }
 
     protected boolean isNumberType(String datatype) {
