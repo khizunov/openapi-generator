@@ -4,10 +4,10 @@ import (
 	"log"
 
     "github.com/gin-gonic/gin"
-	"github.com/{{{gitUserId}}}/{{{gitRepoId}}}/{{{packageName}}}"
+	"github.com/{{{gitUserId}}}/{{{gitRepoId}}}/{{#packagePath}}{{.}}/{{/packagePath}}{{{packageName}}}"
 {{#apiInfo}}
 {{#apis}}
-    "github.com/{{{gitUserId}}}/{{{gitRepoId}}}/{{packageName}}/operations/{{baseName.toLowerCase}}"
+    "github.com/{{{gitUserId}}}/{{{gitRepoId}}}/{{#packagePath}}{{.}}/{{/packagePath}}{{packageName}}/operations/{{baseName.toLowerCase}}"
 {{/apis}}
 {{/apiInfo}}
 )

@@ -10,9 +10,9 @@ import (
 {{/imports}}
 
 	"github.com/gin-gonic/gin"
-    "github.com/{{gitUserId}}/{{gitRepoId}}/{{packageName}}"
-    "github.com/{{gitUserId}}/{{gitRepoId}}/{{packageName}}/errorutil"
-    "github.com/{{gitUserId}}/{{gitRepoId}}/{{packageName}}/models"
+    "github.com/{{gitUserId}}/{{gitRepoId}}/{{#packagePath}}{{.}}/{{/packagePath}}{{packageName}}"
+    "github.com/{{gitUserId}}/{{gitRepoId}}/{{#packagePath}}{{.}}/{{/packagePath}}{{packageName}}/errorutil"
+    "github.com/{{gitUserId}}/{{gitRepoId}}/{{#packagePath}}{{.}}/{{/packagePath}}{{packageName}}/models"
 )
 {{#operation}}
 {{#hasQueryParams}}

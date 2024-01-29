@@ -53,6 +53,9 @@ public abstract class AbstractGoCodegen extends DefaultCodegen implements Codege
     protected boolean generateMarshalJSON = true;
 
     protected String packageName = "openapi";
+
+    protected String packagePath;
+
     protected Set<String> numberTypes;
 
     private final Map<String, String> commonAbbreviations = new HashMap<>();
@@ -833,6 +836,10 @@ public abstract class AbstractGoCodegen extends DefaultCodegen implements Codege
 
     public void setPackageName(String packageName) {
         this.packageName = packageName;
+    }
+
+    public void setPackagePath(String packagePath) {
+        this.packagePath = packagePath;
     }
 
     @Override

@@ -75,6 +75,8 @@ public class GoGinServer2Codegen extends AbstractGoCodegen {
             { "Xss", "XSS" },
     }).collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
+    protected String path;
+
     protected String goVersion = "1.20";
 
     protected int serverPort = 8080;
@@ -98,6 +100,7 @@ public class GoGinServer2Codegen extends AbstractGoCodegen {
         embeddedTemplateDir = templateDir = "go-gin-server2";
         apiPackage = "operations";
         modelPackage = "models";
+        path = packageName;
 
         setEnumVarNameToUpperCase(false);
         appendCommonAbbreviations(commonAbbreviations);
@@ -110,9 +113,16 @@ public class GoGinServer2Codegen extends AbstractGoCodegen {
 
         if (additionalProperties.containsKey(CodegenConstants.PACKAGE_NAME)) {
             setPackageName((String) additionalProperties.get(CodegenConstants.PACKAGE_NAME));
+            path = packageName;
         }
 
         additionalProperties.put(CodegenConstants.PACKAGE_NAME, packageName);
+
+        if (additionalProperties.containsKey(CodegenConstants.PACKAGE_PATH)) {
+            setPackagePath((String) additionalProperties.get(CodegenConstants.PACKAGE_PATH));
+            additionalProperties.put(CodegenConstants.PACKAGE_PATH, packagePath);
+            path = String.format("%s/%s", packagePath, packageName);
+        }
 
         if (additionalProperties.containsKey(CodegenConstants.ENUM_CLASS_PREFIX)) {
             setEnumClassPrefix(Boolean.parseBoolean(additionalProperties.get(CodegenConstants.ENUM_CLASS_PREFIX).toString()));
@@ -122,7 +132,6 @@ public class GoGinServer2Codegen extends AbstractGoCodegen {
         if (additionalProperties.containsKey(varNameToUpperCase)) {
             setEnumVarNameToUpperCase(Boolean.parseBoolean(additionalProperties.get(varNameToUpperCase).toString()));
         }
-
 
         corsFeatureEnabled = isFeatureEnabled("corsFeatureEnabled", corsFeatureEnabled);
         openapiUUIDFeatureEnabled = isFeatureEnabled("openapiUUIDEnabled", openapiUUIDFeatureEnabled);
@@ -157,14 +166,14 @@ public class GoGinServer2Codegen extends AbstractGoCodegen {
             additionalProperties.put("hasSecurities", false);
         }
 
-        supportingFiles.add(new SupportingFile("securer.mustache", packageName, "securer.go"));
+        supportingFiles.add(new SupportingFile("securer.mustache", path, "securer.go"));
         supportingFiles.add(new SupportingFile("main.mustache", "", "main.go"));
         supportingFiles.add(new SupportingFile("go.mod.mustache", "", "go.mod"));
         supportingFiles.add(new SupportingFile("Dockerfile.mustache", "", "Dockerfile"));
-        supportingFiles.add(new SupportingFile("routers.mustache", packageName, "routers.go"));
-        supportingFiles.add(new SupportingFile("invalid_request_error.mustache", packageName + "/errorutil", "invalid_request_error.go"));
-        supportingFiles.add(new SupportingFile("error_logger.mustache", packageName + "/errorutil", "error_logger.go"));
-        supportingFiles.add(new SupportingFile("error_utils.mustache", packageName + "/errorutil", "utils.go"));
+        supportingFiles.add(new SupportingFile("routers.mustache", path, "routers.go"));
+        supportingFiles.add(new SupportingFile("invalid_request_error.mustache", path + "/errorutil", "invalid_request_error.go"));
+        supportingFiles.add(new SupportingFile("error_logger.mustache", path + "/errorutil", "error_logger.go"));
+        supportingFiles.add(new SupportingFile("error_utils.mustache", path + "/errorutil", "utils.go"));
     }
 
     @Override
@@ -310,12 +319,12 @@ public class GoGinServer2Codegen extends AbstractGoCodegen {
 
     @Override
     public String modelFileFolder() {
-        return outputFolder + File.separator + packageName + File.separator + modelPackage;
+        return outputFolder + File.separator + path + File.separator + modelPackage;
     }
 
     @Override
     public String apiFileFolder() {
-        return outputFolder + File.separator + packageName + File.separator + apiPackage;
+        return outputFolder + File.separator + path + File.separator + apiPackage;
     }
 
     @Override

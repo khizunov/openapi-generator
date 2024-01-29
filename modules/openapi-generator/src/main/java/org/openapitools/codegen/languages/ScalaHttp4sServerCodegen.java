@@ -333,7 +333,6 @@ public class ScalaHttp4sServerCodegen extends DefaultCodegen implements CodegenC
 
     @Override
     public void postProcessFile(File file, String fileType) {
-        System.out.println("postprocess " + file.toString());
         super.postProcessFile(file, fileType);
     }
 
